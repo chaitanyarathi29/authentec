@@ -38,7 +38,6 @@ export async function POST(request: NextRequest) {
     })
   }
 }
-//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
 async function validateWithOpenAI(text: string, apiKey: string) {
   try {
     const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
@@ -85,8 +84,6 @@ async function validateWithOpenAI(text: string, apiKey: string) {
   }
 }
 
-
-
 async function validateWithGemini(text: string, apiKey: string) {
   try {
     const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:generateContent?key=${apiKey}`, {
@@ -123,8 +120,6 @@ async function validateWithGemini(text: string, apiKey: string) {
     throw new Error('Gemini validation failed')
   }
 }
-
-//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
 
 async function validateWithClaude(text: string, apiKey: string) {
   try {
