@@ -32,6 +32,9 @@ function parseValidationResult(result: any) {
       parsed.isCorrect = nested.isCorrect ?? parsed.isCorrect
       parsed.errors = nested.errors ?? parsed.errors
       parsed.confidence = nested.confidence ?? parsed.confidence
+      if(parsed.confidence > 0.75){
+        parsed.isCorrect = true;
+      }
     } catch {
   
       parsed.correctedText = text
@@ -225,9 +228,15 @@ export function TextValidation({ apiKeys }: TextValidationProps) {
                 
                 {result.errors && result.errors.length > 0 && (
                   <div className="mt-4 space-y-2">
-                    <Label className="text-sm font-medium text-red-600 dark:text-red-400">
-                      Issues Found:
-                    </Label>
+                    {
+                      result.isCorrect
+                        ? <Label className="text-sm font-medium text-[#22c55e] dark:text-[#22c55e]">
+                            Suggestions:
+                          </Label>
+                        : <Label className="text-sm font-medium text-red-600 dark:text-red-400">
+                            Issues Found:
+                          </Label>
+                    }
                     <ul className="text-sm space-y-1">
                       {result.errors.map((error, i) => (
                         <li key={i} className="flex items-start gap-2">

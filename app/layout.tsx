@@ -8,7 +8,7 @@ import { SessionProvider } from '@/components/session-provider';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'AI Content Validator',
+  title: 'AuthenTec',
   description: 'Validate and correct content using multiple AI providers',
 };
 

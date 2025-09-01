@@ -41,7 +41,7 @@ export default function Home() {
             </div>
           </div>
           <h1 className="text-4xl font-bold text-foreground mb-2">
-            AI Content Validator
+            AuthenTec
           </h1>
           <p className="text-muted-foreground text-lg">
             Validate and correct content using multiple AI providers

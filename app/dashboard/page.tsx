@@ -57,7 +57,7 @@ export default function Dashboard() {
       <main className="container mx-auto px-4 py-8 space-y-8">
         <div className="text-center space-y-4">
           <h1 className="text-4xl font-bold text-foreground">
-            AI Content Validator
+            AuthenTec
           </h1>
           <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
             Configure your AI provider keys and start validating content with powerful language models

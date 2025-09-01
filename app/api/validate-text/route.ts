@@ -38,40 +38,53 @@ export async function POST(request: NextRequest) {
     })
   }
 }
-
+//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
 async function validateWithOpenAI(text: string, apiKey: string) {
   try {
-    const response = await fetch('https://api.openai.com/v1/responses', {
+    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${apiKey}`,
+        'Authorization': `Bearer ${apiKey}`, 
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        model: 'gpt-3.5-turbo',
-        input: `Respond in JSON format: {"isCorrect": boolean, "correctedText": string, "errors": string[], "confidence": number}. Validate this text for factual accuracy: "${text}". Ignore grammatical issues. Only include errors if information is factually incorrect.`
+        model: 'openai/gpt-5', 
+        messages: [
+          {
+            role: 'user',
+            content: `Respond in JSON format: {"isCorrect": boolean, "correctedText": string, "errors": string[], "confidence": number}. Validate this text for factual accuracy: "${text}". Ignore grammatical issues. Only include errors if information is factually incorrect.`
+          }
+        ],
+        temperature: 0.1
       })
     });
 
     const data = await response.json();
-    console.log(data);
+    console.log("Raw OpenRouter response:", data);
 
-    const content = data.output_text ?? data.output?.[0]?.content?.[0]?.text ?? '';
-    console.log(content);
+    const content = data.choices?.[0]?.message?.content ?? '';
+
+    let textToParse = content.trim();
+    const match = textToParse.match(/```json\s*([\s\S]+?)\s*```/);
+    if (match) textToParse = match[1];
+
     try {
-      return JSON.parse(content);
+      return JSON.parse(textToParse);
     } catch {
       return {
         isCorrect: false,
-        correctedText: content,
+        correctedText: textToParse,
         errors: ['Unable to parse validation response'],
         confidence: 0.5
       };
     }
+
   } catch (error) {
+    console.error(error);
     throw new Error('OpenAI validation failed');
   }
 }
+
 
 
 async function validateWithGemini(text: string, apiKey: string) {
@@ -84,7 +97,8 @@ async function validateWithGemini(text: string, apiKey: string) {
       body: JSON.stringify({
         contents: [{
           parts: [{
-            text: `Respond in JSON format: {"isCorrect": boolean, "correctedText": string, "errors": string[], "confidence": number}.Validate this text for accuracy and correctness and ignore grammatical or language strictness also do not add grammatical mistakes in errors clearly avoid them. Only add errors if the information given is wrong otherwise show no error.Text to validate: "${text}"`
+            text: `Respond in JSON format: {"isCorrect": boolean, "correctedText": string, "errors": string[], "confidence": number}.Validate this text for accuracy and correctness and ignore grammatical or language strictness also do not add grammatical mistakes in errors clearly avoid them. Only add errors if the information given is wrong otherwise show no error.Text to validate: "${text}.
+            where confidence is the amount of surety of the input being true out of 1"`
           }]
         }]
       })
@@ -110,28 +124,31 @@ async function validateWithGemini(text: string, apiKey: string) {
   }
 }
 
+//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
+
 async function validateWithClaude(text: string, apiKey: string) {
   try {
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
+    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'x-api-key': apiKey,
-        'anthropic-version': '2023-06-01',
+        'Authorization': `Bearer ${apiKey}`, 
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        model: 'claude-3-sonnet-20240229',
+        model: 'anthropic/claude-sonnet-4',
         max_tokens: 1000,
         messages: [{
           role: 'user',
-          content: `Respond in JSON format: {"isCorrect": boolean, "correctedText": string, "errors": string[], "confidence": number}.Validate this text for accuracy and correctness and ignore grammatical or language strictness also do not add grammatical mistakes in errors clearly avoid them. Only add errors if the information given is wrong otherwise show no error.Text to validate: "${text}"`
+          content: `Respond in JSON format: {"isCorrect": boolean, "correctedText": string, "errors": string[], "confidence": number}. 
+          Validate this text for accuracy and correctness and ignore grammatical or language strictness. Only add errors if the information given is wrong. Text: "${text}. where confidence is the amount of surety of the input being true out of 1"`
         }]
       })
     })
 
     const data = await response.json()
-    const content = data.content[0].text
-    
+
+    const content = data.choices?.[0]?.message?.content ?? ''
+
     try {
       return JSON.parse(content)
     } catch {
@@ -143,9 +160,11 @@ async function validateWithClaude(text: string, apiKey: string) {
       }
     }
   } catch (error) {
+    console.error(error)
     throw new Error('Claude validation failed')
   }
 }
+
 
 async function validateWithLLaMA(text: string, apiKey: string) {
   try {
